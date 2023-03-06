@@ -18,6 +18,11 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     if: startsWith(github.base_ref, 'development')
+    outputs:
+      repo: ${{ env.ECR_REPOSITORY }}
+      role-dev: ${{ env.AWS_ROLE_ARN_DEV }}
+      role-stg: ${{ env.AWS_ROLE_ARN_STG }}
+      role-prod: ${{ env.AWS_ROLE_ARN_PROD }}
     defaults:
       run:
         working-directory: account/
@@ -56,8 +61,8 @@ jobs:
   confirm_dev:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ env.AWS_ROLE_ARN_DEV }}"
-      repo: "${{ env.ECR_REPOSITORY }}-dev"
+      iamrole: "${{ needs.build_image.outputs.role-dev }}"
+      repo: "${{ needs.build_image.outputs.repo }}-dev"
       stage: "dev"
     needs:
       - build_image
@@ -66,7 +71,7 @@ jobs:
   confirm_stg:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ env.AWS_ROLE_ARN_STG }}"
+      iamrole: "${{ needs.build_image.outputs.role-stg }}"
       repo: "${{ env.ECR_REPOSITORY }}-stg"
       stage: "stg"
     needs:
@@ -76,7 +81,7 @@ jobs:
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ env.AWS_ROLE_ARN_PROD }}"
+      iamrole: "${{ needs.build_image.outputs.role-prod }}"
       repo: "${{ env.ECR_REPOSITORY }}-prod"
       stage: "prod"
     needs:
