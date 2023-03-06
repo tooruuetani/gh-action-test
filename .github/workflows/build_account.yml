@@ -88,14 +88,8 @@ jobs:
     if: failure() == false && contains(needs.*.result, 'cancelled') == false
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          LEN=`echo $json | jq -r "map(select(.result==\"success\")) | length"`
-          if [$LEN -eq 0]; then
-            echo No confirmed image.
-            exit -1
-          fi;
-        env:
-          json: ${{ toJSON(needs) }}
+      - run: exit -1
+        if: contains(needs.*.result, 'success') == false
       - run: echo "$json"
         env:
           json: ${{ toJSON(needs) }}
