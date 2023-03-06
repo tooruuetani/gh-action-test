@@ -7,22 +7,14 @@ on:
       - development
       - staging
 
-env:
-  AWS_ROLE_ARN_DEV: arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev
-  AWS_ROLE_ARN_STG: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-stg
-  AWS_ROLE_ARN_PROD: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-prod
-  ECR_REPOSITORY: rpf-account-api
-
 jobs:
   build_image:
+    env:
+      AWS_ROLE_ARN_DEV: arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev
+      ECR_REPOSITORY: rpf-account-api
     permissions: write-all
     runs-on: ubuntu-latest
     if: startsWith(github.base_ref, 'development')
-    outputs:
-      ROLE_DEV: ${{ steps.output-for-confirm.outputs.ROLE_DEV }}
-      ROLE_STG: ${{ steps.output-for-confirm.outputs.ROLE_STG }}
-      ROLE_PROD: ${{ steps.output-for-confirm.outputs.ROLE_PROD }}
-      REPO: ${{ steps.output-for-confirm.outputs.REPO }}
     defaults:
       run:
         working-directory: account/
@@ -57,20 +49,13 @@ jobs:
           ECR: ${{ steps.login-ecr.outputs.registry }}
           TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
         run: docker push $ECR/$ECR_REPOSITORY-dev:$TAG
-      - name: Output
-        id: output-for-confirm
-        run: | # reusable workflow に env を渡す方法が他にないため output 経由で渡す
-          echo "ROLE_DEV=${{ env.AWS_ROLE_ARN_DEV }}" >> $GITHUB_OUTPUT
-          echo "ROLE_STG=${{ env.AWS_ROLE_ARN_STG }}" >> $GITHUB_OUTPUT
-          echo "ROLE_PROD=${{ env.AWS_ROLE_ARN_PROD }}" >> $GITHUB_OUTPUT
-          echo "REPO=${{ env.ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
 
   confirm_dev:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ needs.build_image.outputs.ROLE_DEV }}"
-      repo: "${{ needs.build_image.outputs.REPO }}-dev"
-      stage: "dev"
+      iamrole: arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev
+      repo: rpf-account-api-dev
+      stage: dev
     needs:
       - build_image
     if: startsWith(github.base_ref, 'development')
@@ -78,8 +63,8 @@ jobs:
   confirm_stg:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ needs.build_image.outputs.ROLE_STG }}"
-      repo: "${{ needs.build_image.outputs.REPO }}-stg"
+      iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-stg
+      repo: rpf-account-api-stg
       stage: "stg"
     needs:
       - build_image
@@ -88,8 +73,8 @@ jobs:
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ needs.build_image.outputs.ROLE_PROD }}"
-      repo: "${{ needs.build_image.outputs.REPO }}-prod"
+      iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-prod
+      repo: rpf-account-api-prod
       stage: "prod"
     needs:
       - build_image
