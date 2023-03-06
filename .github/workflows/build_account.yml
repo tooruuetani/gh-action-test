@@ -90,7 +90,7 @@ jobs:
     steps:
       - run: |
           LEN=`echo $json | jq -r "map(select(.result==\"success\")) | length"`
-          if $LEN==0; then
+          if [$LEN==0]; then
             echo No confirmed image.
             exit -1
           fi;
