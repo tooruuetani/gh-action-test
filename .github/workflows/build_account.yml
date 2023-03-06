@@ -72,7 +72,7 @@ jobs:
     uses: "./.github/workflows/confirm_image.yml"
     with:
       iamrole: "${{ needs.build_image.outputs.role-stg }}"
-      repo: "${{ env.ECR_REPOSITORY }}-stg"
+      repo: "${{ needs.build_image.outputs.repo }}-stg"
       stage: "stg"
     needs:
       - build_image
@@ -82,7 +82,7 @@ jobs:
     uses: "./.github/workflows/confirm_image.yml"
     with:
       iamrole: "${{ needs.build_image.outputs.role-prod }}"
-      repo: "${{ env.ECR_REPOSITORY }}-prod"
+      repo: "${{ needs.build_image.outputs.repo }}-prod"
       stage: "prod"
     needs:
       - build_image
