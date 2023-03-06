@@ -13,8 +13,7 @@ on:
         type: string
 
 jobs:
-  confirm_image_pushed:
-    name: "confirm_image_pushed_${{ inputs.stage }}"
+  confirm:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:

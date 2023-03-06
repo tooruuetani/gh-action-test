@@ -18,11 +18,6 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     if: startsWith(github.base_ref, 'development')
-    outputs:
-      repo: ${{ env.ECR_REPOSITORY }}
-      role-dev: ${{ env.AWS_ROLE_ARN_DEV }}
-      role-stg: ${{ env.AWS_ROLE_ARN_STG }}
-      role-prod: ${{ env.AWS_ROLE_ARN_PROD }}
     defaults:
       run:
         working-directory: account/
@@ -57,12 +52,18 @@ jobs:
           ECR: ${{ steps.login-ecr.outputs.registry }}
           TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
         run: docker push $ECR/$ECR_REPOSITORY-dev:$TAG
+      - name: Output
+        run: | # reusable workflow に env を渡す方法が他にないため output 経由で渡す
+          echo "ROLE_DEV=${{ env.AWS_ROLE_ARN_DEV }}" >> $GITHUB_OUTPUT
+          echo "ROLE_STG=${{ env.AWS_ROLE_ARN_STG }}" >> $GITHUB_OUTPUT
+          echo "ROLE_PROD=${{ env.AWS_ROLE_ARN_PROD }}" >> $GITHUB_OUTPUT
+          echo "REPO=${{ env.ECR_REPOSITORY }}" >> $GITHUB_OUTPUT
 
   confirm_dev:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ needs.build_image.outputs.role-dev }}"
-      repo: "${{ needs.build_image.outputs.repo }}-dev"
+      iamrole: "${{ needs.build_image.outputs.ROLE_DEV }}"
+      repo: "${{ needs.build_image.outputs.REPO }}-dev"
       stage: "dev"
     needs:
       - build_image
@@ -71,8 +72,8 @@ jobs:
   confirm_stg:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ needs.build_image.outputs.role-stg }}"
-      repo: "${{ needs.build_image.outputs.repo }}-stg"
+      iamrole: "${{ needs.build_image.outputs.ROLE_STG }}"
+      repo: "${{ needs.build_image.outputs.REPO }}-stg"
       stage: "stg"
     needs:
       - build_image
@@ -81,8 +82,8 @@ jobs:
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "${{ needs.build_image.outputs.role-prod }}"
-      repo: "${{ needs.build_image.outputs.repo }}-prod"
+      iamrole: "${{ needs.build_image.outputs.ROLE_PROD }}"
+      repo: "${{ needs.build_image.outputs.REPO }}-prod"
       stage: "prod"
     needs:
       - build_image
