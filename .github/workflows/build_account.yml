@@ -18,6 +18,11 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     if: startsWith(github.base_ref, 'development')
+    outputs:
+      ROLE_DEV: ${{ steps.output-for-confirm.outputs.ROLE_DEV }}
+      ROLE_STG: ${{ steps.output-for-confirm.outputs.ROLE_STG }}
+      ROLE_PROD: ${{ steps.output-for-confirm.outputs.ROLE_PROD }}
+      REPO: ${{ steps.output-for-confirm.outputs.REPO }}
     defaults:
       run:
         working-directory: account/
@@ -53,6 +58,7 @@ jobs:
           TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
         run: docker push $ECR/$ECR_REPOSITORY-dev:$TAG
       - name: Output
+        id: output-for-confirm
         run: | # reusable workflow に env を渡す方法が他にないため output 経由で渡す
           echo "ROLE_DEV=${{ env.AWS_ROLE_ARN_DEV }}" >> $GITHUB_OUTPUT
           echo "ROLE_STG=${{ env.AWS_ROLE_ARN_STG }}" >> $GITHUB_OUTPUT
