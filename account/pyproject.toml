@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "rpf-account"
+version = "23.02-dev"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+boto3 = "^1.26.79"
+aws-lambda-powertools = "^2.9.0"
+aws-xray-sdk = "^2.11.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+flake8 = "^6.0.0"
+mypy = "^1.0.0"
+pytest = "^7.2.1"
+pytest-cov = "^4.0.0"
+moto = "^4.1.3"
+pytest-mock = "^3.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+source = ["backend/src"]
+
+[tool.pytest.ini_options]
+pythonpath= ["backend/src",]
+testpaths = ["backend/tests",]
+filterwarnings = ["ignore::DeprecationWarning",]
