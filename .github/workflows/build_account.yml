@@ -89,7 +89,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          if `echo $json | jq "map(select(.result==\"success\")) | length"` == 0; then
+          LEN=`echo $json | jq -r "map(select(.result==\"success\")) | length"`
+          if $LEN==0; then
             echo No confirmed image.
             exit -1
           fi;
