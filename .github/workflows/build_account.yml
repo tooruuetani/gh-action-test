@@ -54,7 +54,7 @@ jobs:
         run: docker push $ECR/$ECR_REPOSITORY-dev:$TAG
 
   confirm_image_pushed_dev:
-    uses: "./.github/workflows/confirm_iamge.yml"
+    uses: "./.github/workflows/confirm_image.yml"
     with:
       iamrole: "${{ env.AWS_ROLE_ARN_DEV }}"
       repo: "$ECR_REPOSITORY-dev"
@@ -65,7 +65,7 @@ jobs:
 
 
   confirm_image_pushed_stg:
-    uses: "./.github/workflows/confirm_iamge.yml"
+    uses: "./.github/workflows/confirm_image.yml"
     with:
       iamrole: "${{ env.AWS_ROLE_ARN_STG }}"
       repo: "$ECR_REPOSITORY-stg"
@@ -75,7 +75,7 @@ jobs:
     if: startsWith(github.base_ref, 'staging')
 
   confirm_image_pushed_prod:
-    uses: "./.github/workflows/confirm_iamge.yml"
+    uses: "./.github/workflows/confirm_image.yml"
     with:
       iamrole: "${{ env.AWS_ROLE_ARN_PROD }}"
       repo: "$ECR_REPOSITORY-prod"
