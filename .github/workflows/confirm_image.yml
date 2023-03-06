@@ -30,7 +30,7 @@ jobs:
         id: get-digest
         env:
           TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
-          REPO: $${ inputs.repo }
+          REPO: $${ inputs.repo }}
         run: |
           set -o pipefail
           DIGEST=`aws ecr describe-images --repository-name $REPO --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
@@ -42,5 +42,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "Use image=(Tag:`${{steps.get-version.outputs.IMAGE_TAG}}` / Digest:`${{steps.get-digest.outputs.DIGEST}}`)."
+              body: "Image confirmed (Tag:`${{steps.get-version.outputs.IMAGE_TAG}}` / Digest:`${{steps.get-digest.outputs.DIGEST}}`)."
             })
