@@ -1,4 +1,5 @@
 name: build_account
+run-name: Build account api image for `${{ github.base_ref }}`
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -14,7 +15,6 @@ env:
 
 jobs:
   build_image:
-    name: "build_image"
     permissions: write-all
     runs-on: ubuntu-latest
     if: startsWith(github.base_ref, 'development')
@@ -54,109 +54,35 @@ jobs:
         run: docker push $ECR/$ECR_REPOSITORY-dev:$TAG
 
   confirm_image_pushed_dev:
-    name: "confirm_image_pushed_dev"
+    uses: "./.github/workflows/confirm_iamge.yml"
+    with:
+      iamrole: "${{ env.AWS_ROLE_ARN_DEV }}"
+      repo: "$ECR_REPOSITORY-dev"
+      stage: "dev"
     needs:
       - build_image
     if: startsWith(github.base_ref, 'development')
-    permissions: write-all
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN_DEV }}
-          aws-region: ap-northeast-1
-      - name: Get the version
-        id: get-version
-        env:
-          MAIN_SHA: ${{ github.event.pull_request.head.sha }}
-        run: echo "IMAGE_TAG=$(echo $MAIN_SHA | cut -c -7)" >> $GITHUB_OUTPUT
-      - name: Confirm pushed image
-        id: get-digest
-        env:
-          TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
-        run: |
-          set -o pipefail
-          DIGEST=`aws ecr describe-images --repository-name $ECR_REPOSITORY-dev --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
-          echo "DIGEST=$DIGEST" >> $GITHUB_OUTPUT
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `Use image[tag:${{steps.get-version.outputs.IMAGE_TAG}}/digest:${{steps.get-digest.outputs.DIGEST}}].`
-            })
+
 
   confirm_image_pushed_stg:
-    name: "confirm_image_pushed_stg"
+    uses: "./.github/workflows/confirm_iamge.yml"
+    with:
+      iamrole: "${{ env.AWS_ROLE_ARN_STG }}"
+      repo: "$ECR_REPOSITORY-stg"
+      stage: "stg"
     needs:
       - build_image
     if: startsWith(github.base_ref, 'staging')
-    permissions: write-all
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN_STG }}
-          aws-region: ap-northeast-1
-      - name: Get the version
-        id: get-version
-        env:
-          MAIN_SHA: ${{ github.event.pull_request.head.sha }}
-        run: echo "IMAGE_TAG=$(echo $MAIN_SHA | cut -c -7)" >> $GITHUB_OUTPUT
-      - name: Confirm pushed image
-        id: get-digest
-        env:
-          TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
-        run: |
-          set -o pipefail
-          DIGEST=`aws ecr describe-images --repository-name $ECR_REPOSITORY-stg --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
-          echo "DIGEST=$DIGEST" >> $GITHUB_OUTPUT
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `Use image[tag:${{steps.get-version.outputs.IMAGE_TAG}}/digest:${{steps.get-digest.outputs.DIGEST}}].`
-            })
 
   confirm_image_pushed_prod:
-    name: "confirm_image_pushed_prod"
+    uses: "./.github/workflows/confirm_iamge.yml"
+    with:
+      iamrole: "${{ env.AWS_ROLE_ARN_PROD }}"
+      repo: "$ECR_REPOSITORY-prod"
+      stage: "prod"
     needs:
       - build_image
     if: startsWith(github.base_ref, 'production')
-    permissions: write-all
-    runs-on: ubuntu-latest
-    steps:
-      - uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN_PROD }}
-          aws-region: ap-northeast-1
-      - name: Get the version
-        id: get-version
-        env:
-          MAIN_SHA: ${{ github.event.pull_request.head.sha }}
-        run: echo "IMAGE_TAG=$(echo $MAIN_SHA | cut -c -7)" >> $GITHUB_OUTPUT
-      - name: Confirm pushed image
-        id: get-digest
-        env:
-          TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
-        run: |
-          set -o pipefail
-          DIGEST=`aws ecr describe-images --repository-name $ECR_REPOSITORY-prod --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
-          echo "DIGEST=$DIGEST" >> $GITHUB_OUTPUT
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `Use image[tag:${{steps.get-version.outputs.IMAGE_TAG}}/digest:${{steps.get-digest.outputs.DIGEST}}].`
-            })
 
   confirm_image_pushed:
     needs:
