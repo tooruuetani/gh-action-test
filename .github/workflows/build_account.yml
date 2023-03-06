@@ -85,9 +85,14 @@ jobs:
       - confirm_dev
       - confirm_stg
       - confirm_prod
-    if: failure() == false && contains(needs.*.result, 'cancelled') == false && contains(needs.*.result, 'success')
+    if: failure() == false && contains(needs.*.result, 'cancelled') == false
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          if contains(needs.*.result, 'success') == false ; then
+            echo "No confirmed image.";
+            exit -1;
+          fi;
       - run: echo "$json"
         env:
           json: ${{ toJSON(needs) }}
