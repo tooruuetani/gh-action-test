@@ -85,7 +85,7 @@ jobs:
       - confirm_dev
       - confirm_stg
       - confirm_prod
-    if: failure() == false && contains(needs.*.result, 'cancelled') == false
+    if: failure() == false && contains(needs.*.result, 'cancelled') == false && contains(needs.*.result, 'success') == false
     runs-on: ubuntu-latest
     steps:
       - run: echo "$json"
