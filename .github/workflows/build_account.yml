@@ -1,0 +1,94 @@
+name: build_account
+run-name: Build account api image for `${{ github.base_ref }}`
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - development
+      - staging
+
+jobs:
+  build_image:
+    env:
+      AWS_ROLE_ARN_DEV: arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev
+      ECR_REPOSITORY: rpf-account-api-dev
+    permissions: write-all
+    runs-on: ubuntu-latest
+    if: startsWith(github.base_ref, 'development')
+    defaults:
+      run:
+        working-directory: account/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN_DEV }}
+          aws-region: ap-northeast-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Get the version
+        id: get-version
+        env:
+          MAIN_SHA: ${{ github.event.pull_request.head.sha }}
+        run: echo "IMAGE_TAG=$(echo $MAIN_SHA | cut -c -7)" >> $GITHUB_OUTPUT
+      - name: Build and tag image for Amazon ECR
+        id: build-image
+        env:
+          ECR: ${{ steps.login-ecr.outputs.registry }}
+          TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
+        run: docker build -t $ECR/$ECR_REPOSITORY:$TAG .
+      - name: Test image
+        env:
+          ECR: ${{ steps.login-ecr.outputs.registry }}
+          TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
+        run: docker run --rm --entrypoint= $ECR/$ECR_REPOSITORY:$TAG pytest --cov=backend/src --cov-branch
+      - name: Push image to Amazon ECR
+        env:
+          ECR: ${{ steps.login-ecr.outputs.registry }}
+          TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
+        run: docker push $ECR/$ECR_REPOSITORY:$TAG
+
+  confirm_dev:
+    uses: "./.github/workflows/confirm_image.yml"
+    with:
+      iamrole: arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev
+      repo: rpf-account-api-dev
+      stage: dev
+    needs:
+      - build_image
+    if: startsWith(github.base_ref, 'development')
+
+  confirm_stg:
+    uses: "./.github/workflows/confirm_image.yml"
+    with:
+      iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-stg
+      repo: rpf-account-api-stg
+      stage: "stg"
+    needs:
+      - build_image
+    if: startsWith(github.base_ref, 'staging')
+
+  confirm_prod:
+    uses: "./.github/workflows/confirm_image.yml"
+    with:
+      iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-prod
+      repo: rpf-account-api-prod
+      stage: "prod"
+    needs:
+      - build_image
+    if: startsWith(github.base_ref, 'production')
+
+  confirm_image_pushed:
+    needs:
+      - confirm_dev
+      - confirm_stg
+      - confirm_prod
+    if: failure() == false && contains(needs.*.result, 'cancelled') == false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "$json"
+        env:
+          json: ${{ toJSON(needs) }}
+

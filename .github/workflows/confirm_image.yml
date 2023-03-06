@@ -1,0 +1,46 @@
+name: confirm_image
+on:
+  workflow_call:
+    inputs:
+      iamrole:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+      stage:
+        required: true
+        type: string
+
+jobs:
+  confirm:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ inputs.iamrole }}
+          aws-region: ap-northeast-1
+      - name: Get the version
+        id: get-version
+        env:
+          MAIN_SHA: ${{ github.event.pull_request.head.sha }}
+        run: echo "IMAGE_TAG=$(echo $MAIN_SHA | cut -c -7)" >> $GITHUB_OUTPUT
+      - name: Confirm pushed image
+        id: get-digest
+        env:
+          TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
+          REPO: ${{ inputs.repo }}
+        run: |
+          set -o pipefail
+          DIGEST=`aws ecr describe-images --repository-name $REPO --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
+          echo "DIGEST=$DIGEST" >> $GITHUB_OUTPUT
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "Image confirmed (Tag:`${{steps.get-version.outputs.IMAGE_TAG}}` / Digest:`${{steps.get-digest.outputs.DIGEST}}`)."
+            })
