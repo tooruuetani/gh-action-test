@@ -65,7 +65,7 @@ jobs:
     with:
       iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-stg
       repo: rpf-account-api-stg
-      stage: "stg"
+      stage: stg
     needs:
       - build_image
     if: startsWith(github.base_ref, 'staging')
@@ -75,7 +75,7 @@ jobs:
     with:
       iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-prod
       repo: rpf-account-api-prod
-      stage: "prod"
+      stage: prod
     needs:
       - build_image
     if: startsWith(github.base_ref, 'production')
