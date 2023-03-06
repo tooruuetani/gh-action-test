@@ -68,7 +68,7 @@ jobs:
       stage: stg
     needs:
       - build_image
-    if: startsWith(github.base_ref, 'staging')
+    if: github.base_ref == 'staging'
 
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
@@ -89,6 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: exit -1
+        name: Fails if no confirmed image
         if: contains(needs.*.result, 'success') == false
       - run: echo "$json"
         env:
