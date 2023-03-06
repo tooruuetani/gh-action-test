@@ -30,7 +30,7 @@ jobs:
         id: get-digest
         env:
           TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
-          REPO: $${ inputs.repo }}
+          REPO: ${{ inputs.repo }}
         run: |
           set -o pipefail
           DIGEST=`aws ecr describe-images --repository-name $REPO --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
