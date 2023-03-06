@@ -68,7 +68,7 @@ jobs:
       stage: "stg"
     needs:
       - build_image
-    if: github.base_ref == 'staging'
+    # if: github.base_ref == 'staging'
 
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
