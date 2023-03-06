@@ -66,7 +66,9 @@ jobs:
       iamrole: "arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-stg"
       repo: "rpf-account-api-stg"
       stage: "stg"
-    if: startsWith(github.base_ref, 'staging')
+    needs:
+      - build_image
+    if: always() && startsWith(github.base_ref, 'staging')
 
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
@@ -74,7 +76,9 @@ jobs:
       iamrole: "arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-prod"
       repo: "rpf-account-api-prod"
       stage: "prod"
-    if: startsWith(github.base_ref, 'production')
+    needs:
+      - build_image
+    if: always() && startsWith(github.base_ref, 'production')
 
   confirm_image_pushed:
     needs:
