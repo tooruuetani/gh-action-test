@@ -53,32 +53,31 @@ jobs:
           TAG: ${{ steps.get-version.outputs.IMAGE_TAG }}
         run: docker push $ECR/$ECR_REPOSITORY-dev:$TAG
 
-  confirm_image_pushed_dev:
+  confirm_dev:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "$AWS_ROLE_ARN_DEV"
-      repo: "$ECR_REPOSITORY-dev"
+      iamrole: "${{ env.AWS_ROLE_ARN_DEV }}"
+      repo: "${{ env.ECR_REPOSITORY }}-dev"
       stage: "dev"
     needs:
       - build_image
     if: startsWith(github.base_ref, 'development')
 
-
-  confirm_image_pushed_stg:
+  confirm_stg:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "$AWS_ROLE_ARN_STG"
-      repo: "$ECR_REPOSITORY-stg"
+      iamrole: "${{ env.AWS_ROLE_ARN_STG }}"
+      repo: "${{ env.ECR_REPOSITORY }}-stg"
       stage: "stg"
     needs:
       - build_image
     if: startsWith(github.base_ref, 'staging')
 
-  confirm_image_pushed_prod:
+  confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: "$AWS_ROLE_ARN_PROD"
-      repo: "$ECR_REPOSITORY-prod"
+      iamrole: "${{ env.AWS_ROLE_ARN_PROD }}"
+      repo: "${{ env.ECR_REPOSITORY }}-prod"
       stage: "prod"
     needs:
       - build_image
@@ -86,9 +85,9 @@ jobs:
 
   confirm_image_pushed:
     needs:
-      - confirm_image_pushed_dev
-      - confirm_image_pushed_stg
-      - confirm_image_pushed_prod
+      - confirm_dev
+      - confirm_stg
+      - confirm_prod
     if: failure() == false && contains(needs.*.result, 'cancelled') == false
     runs-on: ubuntu-latest
     steps:
