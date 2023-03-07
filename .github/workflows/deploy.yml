@@ -1,0 +1,43 @@
+name: deploy
+on:
+  workflow_call:
+    inputs:
+      iamrole:
+        required: true
+        type: string
+      stage:
+        required: true
+        type: string
+      workdir_npm:
+        required: true
+        type: string
+      workdir_sls:
+        required: true
+        type: string
+
+jobs:
+  serverless:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      # - uses: aws-actions/configure-aws-credentials@v1-node16
+      #   with:
+      #     role-to-assume: ${{ inputs.iamrole }}
+      #     aws-region: ap-northeast-1
+      - name: Get the version
+        id: get-version
+        env:
+          MAIN_SHA: ${{ github.event.pull_request.head.sha }}
+        run: echo "SHORT_SHA=$(echo $MAIN_SHA | cut -c -7)" >> $GITHUB_OUTPUT
+      - name: Checkout
+        uses: actions/checkout@v3
+      # - name: Use Node.js
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 18
+      - name: Install Dependencies
+        run: ls -al #npm ci
+        working-directory: ${{ inputs.workdir_npm }}
+      - name: Deploy by serverless framework
+        run: ls -al #npx sls deploy --stage ${{ inputs.stage }}
+        working-directory: ${{ inputs.workdir_sls }}

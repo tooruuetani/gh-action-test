@@ -1,0 +1,30 @@
+name: deploy_account
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - release/**/account
+    paths:
+      - account/backend/src/**
+      - account/frontend/public/**
+      - account/frontend/src/**
+
+jobs:
+  deploy_account_backend_dev:
+    if: startsWith(github.base_ref, 'release/dev/account') && github.event.pull_request.merged == true
+    uses: "./.github/workflows/deploy.yml"
+    with:
+      iamrole: "arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev"
+      stage: "dev"
+      workdir_npm: account/backend
+      workdir_sls: account/backend/src
+
+  deploy_account_frontend_dev:
+    if: startsWith(github.base_ref, 'release/dev/account') && github.event.pull_request.merged == true
+    uses: "./.github/workflows/deploy.yml"
+    with:
+      iamrole: "arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev"
+      stage: "dev"
+      workdir_npm: account/frontend
+      workdir_sls: account/frontend/src

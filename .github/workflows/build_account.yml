@@ -53,9 +53,9 @@ jobs:
   confirm_dev:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev
-      repo: rpf-account-api-dev
-      stage: dev
+      iamrole: "arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev"
+      repo: "rpf-account-api-dev"
+      stage: "dev"
     needs:
       - build_image
     if: startsWith(github.base_ref, 'development')
@@ -63,22 +63,22 @@ jobs:
   confirm_stg:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-stg
-      repo: rpf-account-api-stg
+      iamrole: "arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-stg"
+      repo: "rpf-account-api-stg"
       stage: "stg"
     needs:
       - build_image
-    if: startsWith(github.base_ref, 'staging')
+    if: always() && startsWith(github.base_ref, 'staging')
 
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
     with:
-      iamrole: arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-prod
-      repo: rpf-account-api-prod
+      iamrole: "arn:aws:iam::REPLACE_ME:role/rpf-infrastructure-role-prod"
+      repo: "rpf-account-api-prod"
       stage: "prod"
     needs:
       - build_image
-    if: startsWith(github.base_ref, 'production')
+    if: always() && startsWith(github.base_ref, 'production')
 
   confirm_image_pushed:
     needs:
@@ -88,6 +88,9 @@ jobs:
     if: failure() == false && contains(needs.*.result, 'cancelled') == false
     runs-on: ubuntu-latest
     steps:
+      - run: exit -1
+        name: Fails if no confirmed image
+        if: contains(needs.*.result, 'success') == false
       - run: echo "$json"
         env:
           json: ${{ toJSON(needs) }}
