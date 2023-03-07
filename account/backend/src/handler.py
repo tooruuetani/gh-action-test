@@ -1,4 +1,3 @@
-from rpf_account import base_func
 
-def handler():
-    return base_func()
+def lambda_handler_A01(event, context):
+    return {"statusCode": 204, "body": "this is test function"}

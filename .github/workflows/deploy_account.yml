@@ -13,15 +13,16 @@ jobs:
     uses: "./.github/workflows/deploy.yml"
     with:
       iamrole: "arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev"
+      repo: rpf-account-api-dev
       stage: "dev"
       workdir_npm: account/backend
       workdir_sls: account/backend/src
 
-  deploy_account_frontend_dev:
-    if: startsWith(github.base_ref, 'release/dev/account') && github.event.pull_request.merged == true
-    uses: "./.github/workflows/deploy.yml"
-    with:
-      iamrole: "arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev"
-      stage: "dev"
-      workdir_npm: account/frontend
-      workdir_sls: account/frontend/src
+  # deploy_account_frontend_dev:
+  #   if: startsWith(github.base_ref, 'release/dev/account') && github.event.pull_request.merged == true
+  #   uses: "./.github/workflows/deploy.yml"
+  #   with:
+  #     iamrole: "arn:aws:iam::082954585471:role/rpf-infrastructure-role-dev"
+  #     stage: "dev"
+  #     workdir_npm: account/frontend
+  #     workdir_sls: account/frontend/src
