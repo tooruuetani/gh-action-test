@@ -1,4 +1,5 @@
 name: deploy_account
+run-name: Deploy account for `${{ github.base_ref }}`
 on:
   pull_request:
     types:
