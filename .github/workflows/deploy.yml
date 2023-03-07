@@ -5,6 +5,9 @@ on:
       iamrole:
         required: true
         type: string
+      repo:
+        required: false
+        type: string
       stage:
         required: true
         type: string
@@ -20,26 +23,37 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
-      # - uses: aws-actions/configure-aws-credentials@v1-node16
-      #   with:
-      #     role-to-assume: ${{ inputs.iamrole }}
-      #     aws-region: ap-northeast-1
+      - name: Get aws credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ inputs.iamrole }}
+          aws-region: ap-northeast-1
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
       - name: Get the version
         id: get-version
         env:
           MAIN_SHA: ${{ github.event.pull_request.head.sha }}
         run: echo "SHORT_SHA=$(echo $MAIN_SHA | cut -c -7)" >> $GITHUB_OUTPUT
-      - name: Checkout
-        uses: actions/checkout@v3
-      # - name: Use Node.js
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 18
+      - name: Confirm pushed image, retrieve digest.
+        id: get-digest
+        if: "${{ inputs.repo != '' }}"
+        env:
+          TAG: ${{ steps.get-version.outputs.SHORT_SHA }}
+          REPO: ${{ inputs.repo }}
+        run: |
+          set -o pipefail
+          DIGEST=`aws ecr describe-images --repository-name $REPO --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
+          echo "DIGEST=$DIGEST" >> ${{ inputs. workdir_sls }}/.env
       - name: Install Dependencies
-        run: ls -al #npm ci
+        run: npm ci
         working-directory: ${{ inputs.workdir_npm }}
       - name: Deploy by serverless framework
-        run: ls -al #npx sls deploy --stage ${{ inputs.stage }}
+        run: npx sls deploy --stage ${{ inputs.stage }}
         working-directory: ${{ inputs.workdir_sls }}
       - uses: actions/github-script@v6
         with:

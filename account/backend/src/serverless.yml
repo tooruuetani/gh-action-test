@@ -1,0 +1,43 @@
+service: test-api
+frameworkVersion: '3'
+useDotenv: true
+
+params:
+  default:
+    ecr: DUMMY
+    region: ap-northeast-1
+  dev:
+    ecr: 082954585471.dkr.ecr.ap-northeast-1.amazonaws.com/rpf-account-api-dev
+    region: ap-northeast-1
+
+provider:
+  environment:
+    REGION: ${param:region}
+    DYNAMODB_ACCOUNT: m_account
+
+  iam:
+    role:
+      name: "${self:service}-lambda-role-${sls:stage}"
+      managedPolicies:
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+  logRetentionInDays: 30
+  name: aws
+  region: ap-northeast-1
+  runtime: python3.9
+
+package:
+  patterns:
+    - "!**"
+    - "*.py"
+    - "rpf_account/*.py"
+    - "rpf_account/**/*.py"
+
+resources:
+  Description: Lambda stack for RPF account WebAPI.
+
+functions:
+  A01:
+    image:
+      uri: ${param:ecr}@${env:DIGEST}
+      command:
+        - handler.lambda_handler_A01

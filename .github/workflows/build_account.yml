@@ -4,8 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
-      - development
-      - staging
+      - release/**/account
 
 jobs:
   build_image:
@@ -14,7 +13,7 @@ jobs:
       ECR_REPOSITORY: rpf-account-api-dev
     permissions: write-all
     runs-on: ubuntu-latest
-    if: startsWith(github.base_ref, 'development')
+    if: startsWith(github.base_ref, 'release/dev/account')
     defaults:
       run:
         working-directory: account/
@@ -58,7 +57,7 @@ jobs:
       stage: "dev"
     needs:
       - build_image
-    if: startsWith(github.base_ref, 'development')
+    if: startsWith(github.base_ref, 'release/dev/account')
 
   confirm_stg:
     uses: "./.github/workflows/confirm_image.yml"
@@ -68,7 +67,7 @@ jobs:
       stage: "stg"
     needs:
       - build_image
-    if: always() && startsWith(github.base_ref, 'staging')
+    if: always() && startsWith(github.base_ref, 'release/stg/account')
 
   confirm_prod:
     uses: "./.github/workflows/confirm_image.yml"
@@ -78,7 +77,7 @@ jobs:
       stage: "prod"
     needs:
       - build_image
-    if: always() && startsWith(github.base_ref, 'production')
+    if: always() && startsWith(github.base_ref, 'release/prod/account')
 
   confirm_image_pushed:
     needs:
