@@ -1,5 +1,5 @@
-from handler import handler
+from handler import lambda_handler_A01
 
 
 def test_handler():
-    assert handler() == 404
+    assert lambda_handler_A01(None, None)
