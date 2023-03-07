@@ -48,6 +48,7 @@ jobs:
         run: |
           set -o pipefail
           DIGEST=`aws ecr describe-images --repository-name $REPO --image-ids imageTag=$TAG | jq -r ".imageDetails[].imageDigest"`
+          echo "DIGEST=$DIGEST" >> $GITHUB_OUTPUT
           echo "DIGEST=$DIGEST" >> ${{ inputs. workdir_sls }}/.env
       - name: Install Dependencies
         run: npm ci
@@ -55,6 +56,14 @@ jobs:
       - name: Deploy by serverless framework
         run: npx sls deploy --stage ${{ inputs.stage }}
         working-directory: ${{ inputs.workdir_sls }}
+      - name: Tagging to deployed image
+        if: "${{ inputs.repo != '' }}"
+        env:
+          REPO: ${{ inputs.repo }}
+          DIGEST: ${{ steps.get-digest.outputs.DIGEST }}
+        run: |
+          MANIFEST=$(aws ecr batch-get-image --repository-name $REPO --image-ids "imageDigest=$DIGEST" --output json | jq -r -j ".images[0].imageManifest")
+          aws ecr put-image --repository-name $REPO --image-tag ${{ inputs.stage }} --image-manifest "$MANIFEST"
       - uses: actions/github-script@v6
         with:
           script: |
