@@ -48,5 +48,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: "Deploy succeeded@${{steps.get-version.outputs.SHORT_SHA}}."
+              body: "Deploy ${{ inputs.workdir_npm }}@${{steps.get-version.outputs.SHORT_SHA}} succeeded."
             })
