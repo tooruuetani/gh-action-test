@@ -6,10 +6,6 @@ on:
       - closed
     branches:
       - release/**/account
-    paths:
-      - account/backend/src/**
-      - account/frontend/public/**
-      - account/frontend/src/**
 
 jobs:
   deploy_account_backend_dev:
